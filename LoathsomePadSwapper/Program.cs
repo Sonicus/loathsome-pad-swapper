@@ -46,6 +46,8 @@ while (true)
 }
 
 Console.WriteLine("Controllers assigned");
+
+// Initialize virtual controller
 Console.WriteLine("Initializing virtual controller...");
 
 var client = new ViGEmClient();
@@ -56,6 +58,7 @@ Console.WriteLine("Virtual controller initialized");
 
 var activeController = _controller1;
 Console.WriteLine($"{(ushort)activeController.UserIndex + 1} is the active controller");
+
 var previousState = _controller1.GetState();
 while (activeController.IsConnected)
 {
