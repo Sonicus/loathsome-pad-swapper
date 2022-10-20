@@ -1,6 +1,10 @@
-﻿using Nefarius.ViGEm.Client;
+﻿using LoathsomePadSwapper;
+using Nefarius.ViGEm.Client;
 using Nefarius.ViGEm.Client.Targets.Xbox360;
 using SharpDX.XInput;
+using System.Net.WebSockets;
+using System.Text;
+using System.Text.Json;
 
 internal class Program
 {
@@ -8,11 +12,10 @@ internal class Program
     {
         Console.WriteLine("Starting Loathsome Pad Swapper...");
 
-        // Initialize XInput
         var controllers = new[] { new Controller(UserIndex.One), new Controller(UserIndex.Two), new Controller(UserIndex.Three), new Controller(UserIndex.Four) }.Where(controller => controller.IsConnected);
         Console.WriteLine($"Found {controllers.Count()} connected controllers");
 
-        // Assign controllers
+        #region Initialize physical controllers
         Console.WriteLine("Press A on the first controller");
         var controller1 = AssignController(controllers, null);
 
@@ -20,8 +23,9 @@ internal class Program
         var controller2 = AssignController(controllers, controller1.UserIndex);
 
         Console.WriteLine("Controllers assigned");
+        #endregion
 
-        // Initialize virtual controller
+        #region Initialize virtual controller
         Console.WriteLine("Initializing virtual controller...");
 
         var client = new ViGEmClient();
@@ -32,7 +36,13 @@ internal class Program
 
         var activeController = controller1;
         Console.WriteLine($"{(ushort)activeController.UserIndex + 1} is the active controller");
+        #endregion
 
+        #region Connect to Bask Drinker
+        Task.Run(ConnectToBaskDrinker);
+        #endregion
+
+        #region Update virtual controller state
         var previousState = activeController.GetState();
         while (activeController.IsConnected)
         {
@@ -42,8 +52,7 @@ internal class Program
             }
             if (IsKeyPressed(ConsoleKey.Spacebar))
             {
-                activeController = activeController.UserIndex == controller1.UserIndex ? controller2 : controller1;
-                Console.WriteLine($"{(ushort)activeController.UserIndex + 1} is the active controller");
+                ToggleControllers();
             }
 
             var state = activeController.GetState();
@@ -52,7 +61,10 @@ internal class Program
                 PassStateToVirtualController(state.Gamepad);
             }
             previousState = state;
+            Thread.Sleep(1);
+
         }
+        #endregion
 
         void PassStateToVirtualController(Gamepad gamepad)
         {
@@ -84,6 +96,11 @@ internal class Program
             virtualController.SetSliderValue(Xbox360Slider.RightTrigger, gamepad.RightTrigger);
         }
 
+        void ToggleControllers()
+        {
+            activeController = activeController.UserIndex == controller1.UserIndex ? controller2 : controller1;
+            Console.WriteLine($"{(ushort)activeController.UserIndex + 1} is the active controller");
+        }
 
         bool IsKeyPressed(ConsoleKey key)
         {
@@ -102,6 +119,55 @@ internal class Program
                     }
                 }
                 Thread.Sleep(10);
+            }
+        }
+
+        async Task ConnectToBaskDrinker()
+        {
+            using var ws = new ClientWebSocket();
+
+            var serializeOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true
+            };
+
+            Console.WriteLine("Connecting to Loathsome Bäsk Drinker...");
+            await ws.ConnectAsync(new Uri("ws://localhost:10666/"), CancellationToken.None);
+
+            Console.WriteLine("Connected, sending hello...");
+            await ws.SendAsync(
+                Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new BaskMessage.Hello(), options: serializeOptions)),
+                WebSocketMessageType.Text,
+                true,
+                CancellationToken.None);
+            Console.WriteLine("Hello sent");
+
+            Console.WriteLine("Subscribing to nextPlayer topic...");
+            await ws.SendAsync(
+                Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new BaskMessage.Subscribe(), options: serializeOptions)),
+                WebSocketMessageType.Text,
+                true,
+                CancellationToken.None);
+            Console.WriteLine("Subscribed to Loathsome Bäsk Drinker events");
+
+            var buffer = new byte[256];
+            while (ws.State == WebSocketState.Open)
+            {
+                var result = await ws.ReceiveAsync(buffer, CancellationToken.None);
+                if (result.MessageType == WebSocketMessageType.Close)
+                {
+                    await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                }
+                else
+                {
+                    Console.WriteLine($"Bäsk drinker event: {Encoding.UTF8.GetString(buffer, 0, result.Count)}");
+                    var eventMsg = JsonSerializer.Deserialize<BaskMessage.Event>(Encoding.UTF8.GetString(buffer, 0, result.Count), options: serializeOptions);
+                    if (eventMsg != null && eventMsg.MsgType == "nextPlayer")
+                    {
+                        ToggleControllers();
+                    }
+                }
             }
         }
     }
