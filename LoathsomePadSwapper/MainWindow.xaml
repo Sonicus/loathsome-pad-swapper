@@ -1,0 +1,39 @@
+﻿<Window x:Class="LoathsomePadSwapper.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LoathsomePadSwapper"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid ShowGridLines="True" Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+
+        <Label>GamePads connected:</Label>
+        <ListView x:Name="padList" Grid.Row="1">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <WrapPanel>
+                        <TextBlock Text="Controller " />
+                        <TextBlock Text="{Binding UserIndex}"/>
+                        <TextBlock Text=", " />
+                        <TextBlock Text="Connected: " />
+                        <TextBlock Text="{Binding IsConnected}" FontWeight="Bold" />
+                    </WrapPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <Button x:Name="refreshPadsButton" Content="Refresh pads" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="20" Click="RefreshPads_Click"/>
+        <Button x:Name="pad1Button" Tag="1" Content="Assign Controller 1" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Stretch" Margin="20" Click="AssignControllerButton_Click" IsEnabled="{Binding AreButtonsEnabled}"/>
+        <Button x:Name="pad2Button" Tag="2" Content="Assign Controller 2" HorizontalAlignment="Stretch" Grid.Row="2" Grid.Column="1" VerticalAlignment="Stretch" Margin="20" Click="AssignControllerButton_Click" IsEnabled="{Binding AreButtonsEnabled}"/>
+    </Grid>
+</Window>

@@ -6,9 +6,9 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 
-internal class Program
+internal class Loathsome
 {
-    private static void Main(string[] args)
+    private static void Maini(string[] args)
     {
         Console.WriteLine("Starting Loathsome Pad Swapper...");
 
