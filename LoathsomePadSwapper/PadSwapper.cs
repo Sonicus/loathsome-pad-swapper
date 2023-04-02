@@ -18,7 +18,7 @@ internal class PadSwapper
         Controllers = new List<Controller> { new Controller(UserIndex.One), new Controller(UserIndex.Two), new Controller(UserIndex.Three), new Controller(UserIndex.Four) };
     }
 
-    public Task AssignController(int index)
+    public Task AssignController(int index, CancellationToken cancellationToken)
     {
         Debug.WriteLine($"Assigning controller {index}");
 
@@ -26,6 +26,11 @@ internal class PadSwapper
         {
             while (true)
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    Debug.WriteLine("Controller assignment cancelled");
+                    return;
+                }
                 foreach (var controller in Controllers)
                 {
                     if (controller.IsConnected && controller.GetState().Gamepad.Buttons == GamepadButtonFlags.A)

@@ -17,8 +17,9 @@ namespace LoathsomePadSwapper
         public Controller? Controller2 { get => _controller2; private set => SetProperty(ref _controller2, value); }
 
 
-        private PadSwapper _padSwapper;
+        private readonly PadSwapper _padSwapper;
         private bool AssignmentPending;
+        private CancellationTokenSource? _padAssignmentCancellationTokenSource;
         public ObservableCollection<Controller> Controllers { get; }
 
         public PadSwapperViewModel()
@@ -40,6 +41,14 @@ namespace LoathsomePadSwapper
 
         public async Task AssignPad(int index)
         {
+            if (AssignmentPending)
+            {
+                Debug.WriteLine("Cancelling pad assignment");
+                _padAssignmentCancellationTokenSource.Cancel();
+                _padAssignmentCancellationTokenSource.Dispose();
+                return;
+            }
+
             AssignmentPending = true;
             if (index == 1)
             {
@@ -49,8 +58,9 @@ namespace LoathsomePadSwapper
             {
                 Pad1ButtonEnabled = false;
             }
-
-            await _padSwapper.AssignController(index);
+            _padAssignmentCancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = _padAssignmentCancellationTokenSource.Token;
+            await _padSwapper.AssignController(index, cancellationToken);
             Controller1 = _padSwapper.Controller1;
             Controller2 = _padSwapper.Controller2;
 

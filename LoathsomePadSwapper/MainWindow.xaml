@@ -40,7 +40,7 @@
                     <Setter Property="Content" Value="Click to assign Controller 1"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding Pad2ButtonEnabled}" Value="False">
-                            <Setter Property="Content" Value="Push A on pad to assign"/>
+                            <Setter Property="Content" Value="Push A on pad to assign&#10;Click again to cancel"/>
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
@@ -52,7 +52,7 @@
                     <Setter Property="Content" Value="Click to assign Controller 2"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding Pad1ButtonEnabled}" Value="False">
-                            <Setter Property="Content" Value="Push A on pad to assign"/>
+                            <Setter Property="Content" Value="Push A on pad to assign&#10;Click again to cancel"/>
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
