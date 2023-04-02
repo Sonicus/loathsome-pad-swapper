@@ -32,8 +32,8 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <Button x:Name="refreshPadsButton" Content="Refresh pads" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="20" Click="RefreshPads_Click"/>
-        <Button x:Name="pad1Button" Tag="1" Content="Assign Controller 1" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Stretch" Margin="20" Click="AssignControllerButton_Click" IsEnabled="{Binding AreButtonsEnabled}"/>
-        <Button x:Name="pad2Button" Tag="2" Content="Assign Controller 2" HorizontalAlignment="Stretch" Grid.Row="2" Grid.Column="1" VerticalAlignment="Stretch" Margin="20" Click="AssignControllerButton_Click" IsEnabled="{Binding AreButtonsEnabled}"/>
+        <Button x:Name="refreshPadsButton" Content="Refresh pads" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="20"/>
+        <Button x:Name="pad1Button" Tag="1" Content="Assign Controller 1" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Stretch" Margin="20" Click="AssignControllerButton_Click" IsEnabled="{Binding Path=Pad1ButtonEnabled}"/>
+        <Button x:Name="pad2Button" Tag="2" Content="Assign Controller 2" HorizontalAlignment="Stretch" Grid.Row="2" Grid.Column="1" VerticalAlignment="Stretch" Margin="20" Click="AssignControllerButton_Click" IsEnabled="{Binding Path=Pad2ButtonEnabled}"/>
     </Grid>
 </Window>
