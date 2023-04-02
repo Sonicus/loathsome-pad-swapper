@@ -15,18 +15,17 @@ namespace LoathsomePadSwapper
             InitializeComponent();
         }
 
-        private void AssignControllerButton_Click(object sender, RoutedEventArgs e)
+        private async void AssignControllerButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            var controllerIndex = Int32.Parse((string)button!.Tag);
-            Debug.WriteLine($"Assigning controller {controllerIndex}");
+            var controllerIndex = int.Parse((string)button!.Tag);
 
-            if( controllerIndex == 1 ) {
-                ViewModel.Pad2ButtonEnabled = !ViewModel.Pad2ButtonEnabled;
-            } else
-            {
-                ViewModel.Pad1ButtonEnabled = !ViewModel.Pad1ButtonEnabled;
-            }
+            await ViewModel.AssignPad(controllerIndex);
+        }
+
+        private void RefreshPadsButton_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.RefreshPads();
         }
     }
 }

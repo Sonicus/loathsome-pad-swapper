@@ -2,12 +2,63 @@
 using Nefarius.ViGEm.Client;
 using Nefarius.ViGEm.Client.Targets.Xbox360;
 using SharpDX.XInput;
+using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 
-internal class Loathsome
+internal class PadSwapper
 {
+    public List<Controller> Controllers { get; }
+    public Controller? Controller1 { get; private set; }
+    public Controller? Controller2 { get; private set; }
+
+    public PadSwapper()
+    {
+        Controllers = new List<Controller> { new Controller(UserIndex.One), new Controller(UserIndex.Two), new Controller(UserIndex.Three), new Controller(UserIndex.Four) };
+    }
+
+    public Task AssignController(int index)
+    {
+        Debug.WriteLine($"Assigning controller {index}");
+
+        return Task.Run(() =>
+        {
+            while (true)
+            {
+                foreach (var controller in Controllers)
+                {
+                    if (controller.IsConnected && controller.GetState().Gamepad.Buttons == GamepadButtonFlags.A)
+                    {
+                        if (index == 1)
+                        {
+                            Controller1 = controller;
+                            Debug.WriteLine($"Assigned controller {index} with pad {controller.UserIndex}");
+                            if (Controller2 != null && Controller2.UserIndex == Controller1.UserIndex)
+                            {
+                                Controller2 = null;
+                                Debug.WriteLine($"Unassigned controller 2 due to same pad being assigned to controller 1");
+                            }
+                        }
+                        else
+                        {
+                            Controller2 = controller;
+                            Debug.WriteLine($"Assigned controller {index} with pad {controller.UserIndex}");
+                            if (Controller1 != null && Controller1.UserIndex == Controller2.UserIndex)
+                            {
+                                Controller1 = null;
+                                Debug.WriteLine($"Unassigned controller 1 due to same pad being assigned to controller 2");
+                            }
+                        }
+
+                        return;
+                    }
+                }
+                Thread.Sleep(10);
+            }
+        });
+    }
+
     private static void Maini(string[] args)
     {
         Console.WriteLine("Starting Loathsome Pad Swapper...");

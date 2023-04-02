@@ -11,6 +11,7 @@
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
         
         <Grid.ColumnDefinitions>
@@ -19,7 +20,7 @@
         </Grid.ColumnDefinitions>
 
         <Label>GamePads connected:</Label>
-        <ListView x:Name="padList" Grid.Row="1">
+        <ListView ItemsSource="{Binding Controllers}" Grid.Row="1">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <WrapPanel>
@@ -32,8 +33,32 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <Button x:Name="refreshPadsButton" Content="Refresh pads" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="20"/>
-        <Button x:Name="pad1Button" Tag="1" Content="Assign Controller 1" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Stretch" Margin="20" Click="AssignControllerButton_Click" IsEnabled="{Binding Path=Pad1ButtonEnabled}"/>
-        <Button x:Name="pad2Button" Tag="2" Content="Assign Controller 2" HorizontalAlignment="Stretch" Grid.Row="2" Grid.Column="1" VerticalAlignment="Stretch" Margin="20" Click="AssignControllerButton_Click" IsEnabled="{Binding Path=Pad2ButtonEnabled}"/>
+        <Button x:Name="refreshPadsButton" Content="Refresh pads" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="20" Click="RefreshPadsButton_Click"/>
+        <Button x:Name="pad1Button" Tag="1" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Stretch" Margin="20" Click="AssignControllerButton_Click" IsEnabled="{Binding Path=Pad1ButtonEnabled}">
+            <Button.Style>
+                <Style TargetType="{x:Type Button}">
+                    <Setter Property="Content" Value="Click to assign Controller 1"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Pad2ButtonEnabled}" Value="False">
+                            <Setter Property="Content" Value="Push A on pad to assign"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+        </Button>
+        <Button x:Name="pad2Button" Tag="2" HorizontalAlignment="Stretch" Grid.Row="2" Grid.Column="1" VerticalAlignment="Stretch" Margin="20" Click="AssignControllerButton_Click" IsEnabled="{Binding Path=Pad2ButtonEnabled}">
+            <Button.Style>
+                <Style TargetType="{x:Type Button}">
+                    <Setter Property="Content" Value="Click to assign Controller 2"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Pad1ButtonEnabled}" Value="False">
+                            <Setter Property="Content" Value="Push A on pad to assign"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+        </Button>
+        <Label Content="{Binding Controller1.UserIndex, FallbackValue=None}" ContentStringFormat="Bound to gamepad: {0}" HorizontalAlignment="Center" Grid.Row="3" VerticalAlignment="Top"/>
+        <Label Content="{Binding Controller2.UserIndex, FallbackValue=None}" ContentStringFormat="Bound to gamepad: {0}" HorizontalAlignment="Center" Grid.Row="3" Grid.Column="1" VerticalAlignment="Top"/>
     </Grid>
 </Window>
