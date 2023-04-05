@@ -23,8 +23,8 @@
             <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
 
-        <Label>GamePads connected:</Label>
-        <ListView ItemsSource="{Binding Controllers}" Grid.Row="1">
+        <Label Margin="20, 0, 20, 0" FontWeight="Bold">GamePads connected:</Label>
+        <ListView ItemsSource="{Binding Controllers}" Grid.Row="1" Margin="20, 0, 20, 0">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <WrapPanel>

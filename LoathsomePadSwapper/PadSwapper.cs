@@ -79,6 +79,7 @@ internal class PadSwapper
             Debug.WriteLine("Connecting to the virtual controller");
             _virtualController.Connect();
             _virtualControllerConnected = true;
+            _virtualController.FeedbackReceived += VirtualRumbleEventHandler;
         }
 
         return Task.Run(() =>
@@ -88,6 +89,7 @@ internal class PadSwapper
                 if (cancellationToken.IsCancellationRequested)
                 {
                     Debug.WriteLine("Virtual pad cancellation requested, disconnecting...");
+                    _virtualController.FeedbackReceived -= VirtualRumbleEventHandler;
                     _virtualController.Disconnect();
                     _virtualControllerConnected = false;
                     return Task.CompletedTask;
@@ -95,6 +97,13 @@ internal class PadSwapper
                 Thread.Sleep(10);
             }
         });
+    }
+
+    private void VirtualRumbleEventHandler(object sender, Xbox360FeedbackReceivedEventArgs e)
+    {
+        // Values from ViGem are bytes, SharpDX wants ushort
+        var vibration = new Vibration { LeftMotorSpeed = (ushort)(e.LargeMotor * 257), RightMotorSpeed = (ushort)(e.SmallMotor * 257) };
+        ActiveController?.SetVibration(vibration);
     }
 
     private static void Maini(string[] args)
