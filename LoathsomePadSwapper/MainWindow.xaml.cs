@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.Windows;
-using System.Windows.Controls;
+﻿using System.Windows;
 
 namespace LoathsomePadSwapper
 {
@@ -13,14 +11,6 @@ namespace LoathsomePadSwapper
             ViewModel = new PadSwapperViewModel();
             DataContext = ViewModel;
             InitializeComponent();
-        }
-
-        private async void AssignControllerButton_Click(object sender, RoutedEventArgs e)
-        {
-            var button = sender as Button;
-            var controllerIndex = int.Parse((string)button!.Tag);
-
-            await ViewModel.AssignPad(controllerIndex);
         }
 
         private void RefreshPadsButton_Click(object sender, RoutedEventArgs e)

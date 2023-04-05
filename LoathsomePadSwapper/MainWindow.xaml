@@ -6,6 +6,9 @@
         xmlns:local="clr-namespace:LoathsomePadSwapper"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+    <Window.DataContext>
+        <local:PadSwapperViewModel />
+    </Window.DataContext>
     <Grid ShowGridLines="True" Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
@@ -34,24 +37,24 @@
             </ListView.ItemTemplate>
         </ListView>
         <Button x:Name="refreshPadsButton" Content="Refresh pads" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="20" Click="RefreshPadsButton_Click"/>
-        <Button x:Name="pad1Button" Tag="1" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Stretch" Margin="20" Click="AssignControllerButton_Click" IsEnabled="{Binding Path=Pad1ButtonEnabled}">
+        <Button x:Name="pad1Button" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Stretch" Margin="20" Command="{Binding AssignController1Command}">
             <Button.Style>
                 <Style TargetType="{x:Type Button}">
                     <Setter Property="Content" Value="Click to assign Controller 1"/>
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding Pad2ButtonEnabled}" Value="False">
+                        <DataTrigger Binding="{Binding AssignController1Command.IsRunning}" Value="true">
                             <Setter Property="Content" Value="Push A on pad to assign&#10;Click again to cancel"/>
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
             </Button.Style>
         </Button>
-        <Button x:Name="pad2Button" Tag="2" HorizontalAlignment="Stretch" Grid.Row="2" Grid.Column="1" VerticalAlignment="Stretch" Margin="20" Click="AssignControllerButton_Click" IsEnabled="{Binding Path=Pad2ButtonEnabled}">
+        <Button x:Name="pad2Button" HorizontalAlignment="Stretch" Grid.Row="2" Grid.Column="1" VerticalAlignment="Stretch" Margin="20" Command="{Binding AssignController2Command}">
             <Button.Style>
                 <Style TargetType="{x:Type Button}">
                     <Setter Property="Content" Value="Click to assign Controller 2"/>
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding Pad1ButtonEnabled}" Value="False">
+                        <DataTrigger Binding="{Binding AssignController2Command.IsRunning}" Value="true">
                             <Setter Property="Content" Value="Push A on pad to assign&#10;Click again to cancel"/>
                         </DataTrigger>
                     </Style.Triggers>

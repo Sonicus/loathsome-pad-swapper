@@ -1,4 +1,5 @@
 ﻿
+using CommunityToolkit.Mvvm.Input;
 using SharpDX.XInput;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -7,29 +8,30 @@ namespace LoathsomePadSwapper
 {
     internal class PadSwapperViewModel : ViewModelBase
     {
-        private bool _pad1ButtonEnabled;
-        private bool _pad2ButtonEnabled;
+        private readonly PadSwapper _padSwapper;
+
+        public ObservableCollection<Controller> Controllers { get; }
+        private int? _controllerIndexBeingAssigned;
+
         private Controller? _controller1;
         private Controller? _controller2;
-        public bool Pad1ButtonEnabled { get => _pad1ButtonEnabled; private set => SetProperty(ref _pad1ButtonEnabled, value); }
-        public bool Pad2ButtonEnabled { get => _pad2ButtonEnabled; private set => SetProperty(ref _pad2ButtonEnabled, value); }
         public Controller? Controller1 { get => _controller1; private set => SetProperty(ref _controller1, value); }
         public Controller? Controller2 { get => _controller2; private set => SetProperty(ref _controller2, value); }
 
+        public IAsyncRelayCommand AssignController1Command { get; }
+        public IAsyncRelayCommand AssignController2Command { get; }
 
-        private readonly PadSwapper _padSwapper;
-        private bool AssignmentPending;
         private CancellationTokenSource? _padAssignmentCancellationTokenSource;
-        public ObservableCollection<Controller> Controllers { get; }
 
         public PadSwapperViewModel()
         {
-            Pad1ButtonEnabled = true;
-            Pad2ButtonEnabled = true;
             _padSwapper = new PadSwapper();
 
             Controllers = new ObservableCollection<Controller>();
             _padSwapper.Controllers.ForEach(c => Controllers.Add(c));
+
+            AssignController1Command = new AsyncRelayCommand(AssignController1, () => _controllerIndexBeingAssigned == null || _controllerIndexBeingAssigned == 1, AsyncRelayCommandOptions.AllowConcurrentExecutions);
+            AssignController2Command = new AsyncRelayCommand(AssignController2, () => _controllerIndexBeingAssigned == null || _controllerIndexBeingAssigned == 2, AsyncRelayCommandOptions.AllowConcurrentExecutions);
         }
 
         public void RefreshPads()
@@ -39,9 +41,21 @@ namespace LoathsomePadSwapper
             _padSwapper.Controllers.ForEach(c => Controllers.Add(c));
         }
 
-        public async Task AssignPad(int index)
+        private async Task AssignController1()
         {
-            if (AssignmentPending)
+            await AssignController(1);
+        }
+
+        private async Task AssignController2()
+        {
+            await AssignController(2);
+        }
+
+        private async Task AssignController(int index)
+        {
+            Debug.WriteLine($"Index for AssignPad command: {index}");
+
+            if (_controllerIndexBeingAssigned != null)
             {
                 Debug.WriteLine("Cancelling pad assignment");
                 _padAssignmentCancellationTokenSource.Cancel();
@@ -49,30 +63,19 @@ namespace LoathsomePadSwapper
                 return;
             }
 
-            AssignmentPending = true;
-            if (index == 1)
-            {
-                Pad2ButtonEnabled = false;
-            }
-            else
-            {
-                Pad1ButtonEnabled = false;
-            }
+            _controllerIndexBeingAssigned = index;
+            AssignController1Command.NotifyCanExecuteChanged();
+            AssignController2Command.NotifyCanExecuteChanged();
+
             _padAssignmentCancellationTokenSource = new CancellationTokenSource();
             var cancellationToken = _padAssignmentCancellationTokenSource.Token;
             await _padSwapper.AssignController(index, cancellationToken);
             Controller1 = _padSwapper.Controller1;
             Controller2 = _padSwapper.Controller2;
 
-            if (index == 1)
-            {
-                Pad2ButtonEnabled = true;
-            }
-            else
-            {
-                Pad1ButtonEnabled = true;
-            }
-            AssignmentPending = false;
+            _controllerIndexBeingAssigned = null;
+            AssignController1Command.NotifyCanExecuteChanged();
+            AssignController2Command.NotifyCanExecuteChanged();
         }
     }
 }
