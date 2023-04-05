@@ -16,7 +16,7 @@
             <RowDefinition Height="*"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
-        
+
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"></ColumnDefinition>
             <ColumnDefinition Width="*"></ColumnDefinition>
@@ -36,7 +36,7 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <Button x:Name="refreshPadsButton" Content="Refresh pads" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="20" Click="RefreshPadsButton_Click"/>
+        <Button x:Name="refreshPadsButton" Content="Refresh pads" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Command="{Binding RefreshPadsCommand}" Height="35" Width="95"/>
         <Button x:Name="pad1Button" HorizontalAlignment="Stretch" Grid.Row="2" VerticalAlignment="Stretch" Margin="20" Command="{Binding AssignController1Command}">
             <Button.Style>
                 <Style TargetType="{x:Type Button}">

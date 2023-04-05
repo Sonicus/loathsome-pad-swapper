@@ -12,10 +12,5 @@ namespace LoathsomePadSwapper
             DataContext = ViewModel;
             InitializeComponent();
         }
-
-        private void RefreshPadsButton_Click(object sender, RoutedEventArgs e)
-        {
-            ViewModel.RefreshPads();
-        }
     }
 }

@@ -18,6 +18,7 @@ namespace LoathsomePadSwapper
         public Controller? Controller1 { get => _controller1; private set => SetProperty(ref _controller1, value); }
         public Controller? Controller2 { get => _controller2; private set => SetProperty(ref _controller2, value); }
 
+        public IRelayCommand RefreshPadsCommand { get; }
         public IAsyncRelayCommand AssignController1Command { get; }
         public IAsyncRelayCommand AssignController2Command { get; }
 
@@ -30,6 +31,7 @@ namespace LoathsomePadSwapper
             Controllers = new ObservableCollection<Controller>();
             _padSwapper.Controllers.ForEach(c => Controllers.Add(c));
 
+            RefreshPadsCommand = new RelayCommand(RefreshPads);
             AssignController1Command = new AsyncRelayCommand(AssignController1, () => _controllerIndexBeingAssigned == null || _controllerIndexBeingAssigned == 1, AsyncRelayCommandOptions.AllowConcurrentExecutions);
             AssignController2Command = new AsyncRelayCommand(AssignController2, () => _controllerIndexBeingAssigned == null || _controllerIndexBeingAssigned == 2, AsyncRelayCommandOptions.AllowConcurrentExecutions);
         }
