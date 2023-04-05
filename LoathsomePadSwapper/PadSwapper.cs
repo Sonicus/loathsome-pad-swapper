@@ -1,5 +1,6 @@
 ﻿using LoathsomePadSwapper;
 using Nefarius.ViGEm.Client;
+using Nefarius.ViGEm.Client.Targets;
 using Nefarius.ViGEm.Client.Targets.Xbox360;
 using SharpDX.XInput;
 using System.Diagnostics;
@@ -12,10 +13,17 @@ internal class PadSwapper
     public List<Controller> Controllers { get; }
     public Controller? Controller1 { get; private set; }
     public Controller? Controller2 { get; private set; }
+    public Controller? ActiveController { get; private set; }
+
+    private ViGEmClient _vigemClient;
+    private IXbox360Controller _virtualController;
+    private bool _virtualControllerConnected;
 
     public PadSwapper()
     {
         Controllers = new List<Controller> { new Controller(UserIndex.One), new Controller(UserIndex.Two), new Controller(UserIndex.Three), new Controller(UserIndex.Four) };
+        _vigemClient = new ViGEmClient();
+        _virtualController = _vigemClient.CreateXbox360Controller();
     }
 
     public Task AssignController(int index, CancellationToken cancellationToken)
@@ -58,6 +66,31 @@ internal class PadSwapper
 
                         return;
                     }
+                }
+                Thread.Sleep(10);
+            }
+        });
+    }
+
+    public Task RunVirtualPad(CancellationToken cancellationToken)
+    {
+        if (_virtualControllerConnected == false)
+        {
+            Debug.WriteLine("Connecting to the virtual controller");
+            _virtualController.Connect();
+            _virtualControllerConnected = true;
+        }
+
+        return Task.Run(() =>
+        {
+            while (true)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    Debug.WriteLine("Virtual pad cancellation requested, disconnecting...");
+                    _virtualController.Disconnect();
+                    _virtualControllerConnected = false;
+                    return Task.CompletedTask;
                 }
                 Thread.Sleep(10);
             }

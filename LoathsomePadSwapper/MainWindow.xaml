@@ -9,11 +9,12 @@
     <Window.DataContext>
         <local:PadSwapperViewModel />
     </Window.DataContext>
-    <Grid ShowGridLines="True" Margin="10">
+    <Grid ShowGridLines="False" Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
 
@@ -63,5 +64,17 @@
         </Button>
         <Label Content="{Binding Controller1.UserIndex, FallbackValue=None}" ContentStringFormat="Bound to gamepad: {0}" HorizontalAlignment="Center" Grid.Row="3" VerticalAlignment="Top"/>
         <Label Content="{Binding Controller2.UserIndex, FallbackValue=None}" ContentStringFormat="Bound to gamepad: {0}" HorizontalAlignment="Center" Grid.Row="3" Grid.Column="1" VerticalAlignment="Top"/>
+        <Button x:Name="runVirtualPadButtons" HorizontalAlignment="Center" Grid.Row="4" Grid.ColumnSpan="2" VerticalAlignment="Center" Command="{Binding RunVirtualPadCommand}" Height="35" Width="113">
+            <Button.Style>
+                <Style TargetType="{x:Type Button}">
+                    <Setter Property="Content" Value="Start Pad Swapper"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsSwapperRunning}" Value="true">
+                            <Setter Property="Content" Value="Stop Pad Swapper"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+        </Button>
     </Grid>
 </Window>

@@ -1,6 +1,7 @@
 ﻿
 using CommunityToolkit.Mvvm.Input;
 using SharpDX.XInput;
+using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
@@ -14,15 +15,20 @@ namespace LoathsomePadSwapper
         private int? _controllerIndexBeingAssigned;
 
         private Controller? _controller1;
-        private Controller? _controller2;
         public Controller? Controller1 { get => _controller1; private set => SetProperty(ref _controller1, value); }
+        private Controller? _controller2;
         public Controller? Controller2 { get => _controller2; private set => SetProperty(ref _controller2, value); }
+        private bool _isSwapperRunning;
+        public bool IsSwapperRunning { get => _isSwapperRunning; private set => SetProperty(ref _isSwapperRunning, value); }
+
 
         public IRelayCommand RefreshPadsCommand { get; }
+        public IRelayCommand RunVirtualPadCommand { get; }
         public IAsyncRelayCommand AssignController1Command { get; }
         public IAsyncRelayCommand AssignController2Command { get; }
 
         private CancellationTokenSource? _padAssignmentCancellationTokenSource;
+        private CancellationTokenSource? _swapperCancellationTokenSource;
 
         public PadSwapperViewModel()
         {
@@ -32,6 +38,7 @@ namespace LoathsomePadSwapper
             _padSwapper.Controllers.ForEach(c => Controllers.Add(c));
 
             RefreshPadsCommand = new RelayCommand(RefreshPads);
+            RunVirtualPadCommand = new RelayCommand(StartStopSwapper);
             AssignController1Command = new AsyncRelayCommand(AssignController1, () => _controllerIndexBeingAssigned == null || _controllerIndexBeingAssigned == 1, AsyncRelayCommandOptions.AllowConcurrentExecutions);
             AssignController2Command = new AsyncRelayCommand(AssignController2, () => _controllerIndexBeingAssigned == null || _controllerIndexBeingAssigned == 2, AsyncRelayCommandOptions.AllowConcurrentExecutions);
         }
@@ -60,7 +67,7 @@ namespace LoathsomePadSwapper
             if (_controllerIndexBeingAssigned != null)
             {
                 Debug.WriteLine("Cancelling pad assignment");
-                _padAssignmentCancellationTokenSource.Cancel();
+                _padAssignmentCancellationTokenSource!.Cancel();
                 _padAssignmentCancellationTokenSource.Dispose();
                 return;
             }
@@ -78,6 +85,24 @@ namespace LoathsomePadSwapper
             _controllerIndexBeingAssigned = null;
             AssignController1Command.NotifyCanExecuteChanged();
             AssignController2Command.NotifyCanExecuteChanged();
+        }
+
+        private void StartStopSwapper()
+        {
+            if (IsSwapperRunning)
+            {
+                Debug.WriteLine("Stopping Pad Swapper");
+                _swapperCancellationTokenSource!.Cancel();
+                _swapperCancellationTokenSource.Dispose();
+                IsSwapperRunning = false;
+                return;
+            }
+
+            Debug.WriteLine("Starting Pad Swapper");
+            _swapperCancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = _swapperCancellationTokenSource.Token;
+            _padSwapper.RunVirtualPad(cancellationToken);
+            IsSwapperRunning = true;
         }
     }
 }
