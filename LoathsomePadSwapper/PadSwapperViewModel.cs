@@ -20,15 +20,19 @@ namespace LoathsomePadSwapper
         public Controller? Controller2 { get => _controller2; private set => SetProperty(ref _controller2, value); }
         private bool _isSwapperRunning;
         public bool IsSwapperRunning { get => _isSwapperRunning; private set => SetProperty(ref _isSwapperRunning, value); }
+        private bool _isBaskDrinkerConnected;
+        public bool IsBaskDrinkerConnected { get => _isBaskDrinkerConnected; private set => SetProperty(ref _isBaskDrinkerConnected, value); }
 
 
         public IRelayCommand RefreshPadsCommand { get; }
         public IRelayCommand RunVirtualPadCommand { get; }
+        public IRelayCommand ConnectToBaskDrinkerCommand { get; }
         public IAsyncRelayCommand AssignController1Command { get; }
         public IAsyncRelayCommand AssignController2Command { get; }
 
         private CancellationTokenSource? _padAssignmentCancellationTokenSource;
         private CancellationTokenSource? _swapperCancellationTokenSource;
+        private CancellationTokenSource? _baskDrinkerCancellationTokenSource;
 
         public PadSwapperViewModel()
         {
@@ -39,8 +43,26 @@ namespace LoathsomePadSwapper
 
             RefreshPadsCommand = new RelayCommand(RefreshPads);
             RunVirtualPadCommand = new RelayCommand(StartStopSwapper, () => _padSwapper.Controller1 != null || _padSwapper.Controller2 != null);
+            ConnectToBaskDrinkerCommand = new RelayCommand(ConnectToBaskDrinker);
             AssignController1Command = new AsyncRelayCommand(AssignController1, () => _controllerIndexBeingAssigned == null || _controllerIndexBeingAssigned == 1, AsyncRelayCommandOptions.AllowConcurrentExecutions);
             AssignController2Command = new AsyncRelayCommand(AssignController2, () => _controllerIndexBeingAssigned == null || _controllerIndexBeingAssigned == 2, AsyncRelayCommandOptions.AllowConcurrentExecutions);
+        }
+
+        private void ConnectToBaskDrinker()
+        {
+            if (_baskDrinkerCancellationTokenSource != null)
+            {
+                Debug.WriteLine("Cancelling Bask Drinker connection");
+                _baskDrinkerCancellationTokenSource.Cancel();
+                _baskDrinkerCancellationTokenSource.Dispose();
+                _baskDrinkerCancellationTokenSource = null;
+                IsBaskDrinkerConnected = false;
+                return;
+            }
+            _baskDrinkerCancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = _baskDrinkerCancellationTokenSource.Token;
+            _padSwapper.ConnectToBaskDrinker(cancellationToken);
+            IsBaskDrinkerConnected = true;
         }
 
         public void RefreshPads()
@@ -69,6 +91,7 @@ namespace LoathsomePadSwapper
                 Debug.WriteLine("Cancelling pad assignment");
                 _padAssignmentCancellationTokenSource!.Cancel();
                 _padAssignmentCancellationTokenSource.Dispose();
+                _padAssignmentCancellationTokenSource = null;
                 return;
             }
 
@@ -95,6 +118,7 @@ namespace LoathsomePadSwapper
                 Debug.WriteLine("Stopping Pad Swapper");
                 _swapperCancellationTokenSource!.Cancel();
                 _swapperCancellationTokenSource.Dispose();
+                _swapperCancellationTokenSource = null;
                 IsSwapperRunning = false;
                 return;
             }

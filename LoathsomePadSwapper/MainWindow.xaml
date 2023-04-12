@@ -64,13 +64,25 @@
         </Button>
         <Label Content="{Binding Controller1.UserIndex, FallbackValue=None}" ContentStringFormat="Bound to gamepad: {0}" HorizontalAlignment="Center" Grid.Row="3" VerticalAlignment="Top"/>
         <Label Content="{Binding Controller2.UserIndex, FallbackValue=None}" ContentStringFormat="Bound to gamepad: {0}" HorizontalAlignment="Center" Grid.Row="3" Grid.Column="1" VerticalAlignment="Top"/>
-        <Button x:Name="runVirtualPadButtons" HorizontalAlignment="Center" Grid.Row="4" Grid.ColumnSpan="2" VerticalAlignment="Center" Command="{Binding RunVirtualPadCommand}" Height="35" Width="113">
+        <Button x:Name="runVirtualPadButton" HorizontalAlignment="Center" Grid.Row="4" VerticalAlignment="Center" Command="{Binding RunVirtualPadCommand}" Height="35" Width="113">
             <Button.Style>
                 <Style TargetType="{x:Type Button}">
                     <Setter Property="Content" Value="Start Pad Swapper"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding IsSwapperRunning}" Value="true">
                             <Setter Property="Content" Value="Stop Pad Swapper"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+        </Button>
+        <Button x:Name="connectToBaskDrinkerButton" HorizontalAlignment="Center" Grid.Row="4" Grid.Column="1" VerticalAlignment="Center" Command="{Binding ConnectToBaskDrinkerCommand}" Height="35" Width="196">
+            <Button.Style>
+                <Style TargetType="{x:Type Button}">
+                    <Setter Property="Content" Value="Connect to Bask Drinker"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsBaskDrinkerConnected}" Value="true">
+                            <Setter Property="Content" Value="Disconnect from Bask Drinker"/>
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
