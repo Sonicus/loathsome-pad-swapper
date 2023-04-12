@@ -76,14 +76,21 @@ internal class PadSwapper
     {
         if (_virtualControllerConnected == false)
         {
+            if (Controller1 == null && Controller2 == null)
+            {
+                Debug.WriteLine("No physical controllers assigned, can't start virtual pad");
+                return Task.FromException(new Exception("No physical controllers assigned, can't start virtual pad"));
+            }
             Debug.WriteLine("Connecting to the virtual controller");
             _virtualController.Connect();
             _virtualControllerConnected = true;
             _virtualController.FeedbackReceived += VirtualRumbleEventHandler;
+            ActiveController = Controller1 != null ? Controller1 : Controller2;
         }
 
         return Task.Run(() =>
         {
+            var previousState = ActiveController!.GetState();
             while (true)
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -94,9 +101,84 @@ internal class PadSwapper
                     _virtualControllerConnected = false;
                     return Task.CompletedTask;
                 }
-                Thread.Sleep(10);
+                if (ActiveController == null)
+                {
+                    Debug.WriteLine("ActiveController is null");
+                    _virtualController.FeedbackReceived -= VirtualRumbleEventHandler;
+                    _virtualController.Disconnect();
+                    _virtualControllerConnected = false;
+                    // TODO Handle this on the frontend side
+                    return Task.FromException(new Exception("ActiveController is null"));
+                }
+
+                if (!ActiveController.IsConnected)
+                {
+                    if (ActiveController == Controller1 && Controller2 != null && Controller2.IsConnected)
+                    {
+                        Debug.WriteLine("Active Controller disconnected suddenly, switching active controller from Controller1 to Controller2");
+                        ActiveController = Controller2;
+                    }
+                    else if (ActiveController == Controller2 && Controller1 != null && Controller1.IsConnected)
+                    {
+                        Debug.WriteLine("Active Controller disconnected suddenly, switching active controller from Controller2 to Controller1");
+                        ActiveController = Controller1;
+                    }
+                    else
+                    {
+                        Debug.WriteLine("ActiveController disconnected suddenly and no other controller assigned, stopping virtual pad");
+                        _virtualController.FeedbackReceived -= VirtualRumbleEventHandler;
+                        _virtualController.Disconnect();
+                        _virtualControllerConnected = false;
+                        // TODO Handle this on the frontend side
+                        return Task.FromException(new Exception("ActiveController is null"));
+                    }
+
+                }
+
+                var state = ActiveController.GetState();
+                if (previousState.PacketNumber != state.PacketNumber)
+                {
+                    PassStateToVirtualController(state.Gamepad);
+                }
+                previousState = state;
+                Thread.Sleep(5);
             }
         });
+    }
+
+    private void PassStateToVirtualController(Gamepad gamepad)
+    {
+        if (_virtualControllerConnected == false || _virtualController == null)
+        {
+            return;
+        }
+
+        _virtualController.SetButtonState(Xbox360Button.A, gamepad.Buttons.HasFlag(GamepadButtonFlags.A));
+        _virtualController.SetButtonState(Xbox360Button.B, gamepad.Buttons.HasFlag(GamepadButtonFlags.B));
+        _virtualController.SetButtonState(Xbox360Button.X, gamepad.Buttons.HasFlag(GamepadButtonFlags.X));
+        _virtualController.SetButtonState(Xbox360Button.Y, gamepad.Buttons.HasFlag(GamepadButtonFlags.Y));
+
+        _virtualController.SetButtonState(Xbox360Button.Start, gamepad.Buttons.HasFlag(GamepadButtonFlags.Start));
+        _virtualController.SetButtonState(Xbox360Button.Back, gamepad.Buttons.HasFlag(GamepadButtonFlags.Back));
+
+        _virtualController.SetButtonState(Xbox360Button.LeftShoulder, gamepad.Buttons.HasFlag(GamepadButtonFlags.LeftShoulder));
+        _virtualController.SetButtonState(Xbox360Button.RightShoulder, gamepad.Buttons.HasFlag(GamepadButtonFlags.RightShoulder));
+
+        _virtualController.SetButtonState(Xbox360Button.LeftThumb, gamepad.Buttons.HasFlag(GamepadButtonFlags.LeftThumb));
+        _virtualController.SetButtonState(Xbox360Button.RightThumb, gamepad.Buttons.HasFlag(GamepadButtonFlags.RightThumb));
+
+        _virtualController.SetButtonState(Xbox360Button.Left, gamepad.Buttons.HasFlag(GamepadButtonFlags.DPadLeft));
+        _virtualController.SetButtonState(Xbox360Button.Right, gamepad.Buttons.HasFlag(GamepadButtonFlags.DPadRight));
+        _virtualController.SetButtonState(Xbox360Button.Up, gamepad.Buttons.HasFlag(GamepadButtonFlags.DPadUp));
+        _virtualController.SetButtonState(Xbox360Button.Down, gamepad.Buttons.HasFlag(GamepadButtonFlags.DPadDown));
+
+        _virtualController.SetAxisValue(Xbox360Axis.LeftThumbX, gamepad.LeftThumbX);
+        _virtualController.SetAxisValue(Xbox360Axis.LeftThumbY, gamepad.LeftThumbY);
+        _virtualController.SetAxisValue(Xbox360Axis.RightThumbX, gamepad.RightThumbX);
+        _virtualController.SetAxisValue(Xbox360Axis.RightThumbY, gamepad.RightThumbY);
+
+        _virtualController.SetSliderValue(Xbox360Slider.LeftTrigger, gamepad.LeftTrigger);
+        _virtualController.SetSliderValue(Xbox360Slider.RightTrigger, gamepad.RightTrigger);
     }
 
     private void VirtualRumbleEventHandler(object sender, Xbox360FeedbackReceivedEventArgs e)

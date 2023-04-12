@@ -38,7 +38,7 @@ namespace LoathsomePadSwapper
             _padSwapper.Controllers.ForEach(c => Controllers.Add(c));
 
             RefreshPadsCommand = new RelayCommand(RefreshPads);
-            RunVirtualPadCommand = new RelayCommand(StartStopSwapper);
+            RunVirtualPadCommand = new RelayCommand(StartStopSwapper, () => _padSwapper.Controller1 != null || _padSwapper.Controller2 != null);
             AssignController1Command = new AsyncRelayCommand(AssignController1, () => _controllerIndexBeingAssigned == null || _controllerIndexBeingAssigned == 1, AsyncRelayCommandOptions.AllowConcurrentExecutions);
             AssignController2Command = new AsyncRelayCommand(AssignController2, () => _controllerIndexBeingAssigned == null || _controllerIndexBeingAssigned == 2, AsyncRelayCommandOptions.AllowConcurrentExecutions);
         }
@@ -85,6 +85,7 @@ namespace LoathsomePadSwapper
             _controllerIndexBeingAssigned = null;
             AssignController1Command.NotifyCanExecuteChanged();
             AssignController2Command.NotifyCanExecuteChanged();
+            RunVirtualPadCommand.NotifyCanExecuteChanged();
         }
 
         private void StartStopSwapper()
