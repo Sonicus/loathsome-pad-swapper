@@ -229,6 +229,8 @@ internal class PadSwapper
             }
             else
             {
+                // Set rumble to zero for the previous active controller
+                SetRumbleToZero(ActiveController);
                 ActiveController = Controller2;
                 Debug.WriteLine("Controller 2 is the active controller");
             }
@@ -241,6 +243,8 @@ internal class PadSwapper
             }
             else
             {
+                // Set rumble to zero for the previous active controller
+                SetRumbleToZero(ActiveController);
                 ActiveController = Controller1;
                 Debug.WriteLine("Controller 1 is the active controller");
             }
@@ -287,5 +291,10 @@ internal class PadSwapper
         // Values from ViGem are bytes, SharpDX wants ushort
         var vibration = new Vibration { LeftMotorSpeed = (ushort)(e.LargeMotor * 257), RightMotorSpeed = (ushort)(e.SmallMotor * 257) };
         ActiveController?.SetVibration(vibration);
+    }
+
+    private void SetRumbleToZero(Controller gamepad)
+    {
+        gamepad.SetVibration(new Vibration { LeftMotorSpeed = 0, RightMotorSpeed = 0 });
     }
 }
